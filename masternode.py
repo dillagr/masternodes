@@ -6,6 +6,7 @@ import sys
 import subprocess
 import requests
 import os
+import telegram
 
 from dotenv import dotenv_values
 dot = dotenv_values()
@@ -26,14 +27,14 @@ COINCLI = '/usr/local/bin/flits-cli'
 ## SEND A SHOUTOUT!!!
 def send_alert(message):
     ## just sends the message over telegram
-    subprocess.run( ["/usr/local/bin/telegram-send", f"{message}"], stdout=subprocess.PIPE )
+    bot = telegram.Bot(token=dot.get('TOKEN'))
+    bot.sendMessage(chat_id=dot.get('_CHID'), text=message)
     return True
 
 
 ## START MASTERNODE!!!
 def start_mnode(masternode):
     ## starts the masternode
-    #subprocess.run( [COINCLI,'startmasternode','alias','0', masternode], stdout=subprocess.PIPE )
     debug = walletrpc(method="startmasternode", params=["alias", "0", masternode])
     logr.debug(f"Response: {json.dumps(debug, indent=4)}")
     return True
@@ -65,9 +66,6 @@ logr.debug(f"MASTERNODE: {json.dumps(js, indent=4)}")
 
 blk = walletrpc(method="getblockcount")
 logr.debug(f"BLOCK: {json.dumps(blk, indent=4)}")
-
-#if blk.get('result') <= 1000:
-#    raise SystemExit
 
 #ss = walletrpc(method="getstakingstatus")
 #logr.debug(f"BLOCK: {json.dumps(ss, indent=4)}")
