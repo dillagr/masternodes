@@ -1,0 +1,9 @@
+## blackkist everything
+*
+
+## whitelist template
+!.env.template
+
+## whitelist the scripts
+!blockhash.py
+!masternode.py
