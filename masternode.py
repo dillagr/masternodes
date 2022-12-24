@@ -15,7 +15,7 @@ dot = dotenv_values()
 #from emoji import emojize
 import logging
 FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
-logging.basicConfig(level=logging.INFO, format=FORMAT)
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logr = logging.getLogger('masternode')
 
 
@@ -67,6 +67,11 @@ logr.debug(f"MASTERNODE: {json.dumps(js, indent=4)}")
 blk = walletrpc(method="getblockcount")
 logr.debug(f"BLOCK: {json.dumps(blk, indent=4)}")
 
+if abs( (blk.get('result') % 100_000) - 100_000 ) < 299:
+    BLKMESSAGE = f"⚠️ WARNING! Blockchain height @{blk} -- about to change collateral."
+    send_alert(BLKMESSAGE)
+
+
 #ss = walletrpc(method="getstakingstatus")
 #logr.debug(f"BLOCK: {json.dumps(ss, indent=4)}")
 
@@ -79,6 +84,7 @@ for MN in js.get("result"):
 
     elif MN['status'] in ('EXPIRED', 'MISSING'):
         start_mnode(MN['alias'])
+        if "onion" in MN['address']: start_mnode(MN['alias'])
         send_alert(MESSAGE)
 
     else:
