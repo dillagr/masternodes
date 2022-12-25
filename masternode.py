@@ -19,11 +19,6 @@ logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logr = logging.getLogger('masternode')
 
 
-
-## ---> EDITS HERE! <---
-COINCLI = '/usr/local/bin/flits-cli'
-
-
 ## SEND A SHOUTOUT!!!
 def send_alert(message):
     ## just sends the message over telegram
