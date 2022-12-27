@@ -1,0 +1,23 @@
+## file: /etc/tor/torrc
+DataDirectory /var/lib/tor
+PidFile /run/tor/tor.pid
+RunAsDaemon 1
+User debian-tor
+
+SocksPolicy accept 127.0.0.1
+SocksPolicy reject *
+
+ControlSocket /run/tor/control GroupWritable RelaxDirModeCheck
+ControlSocketsGroupWritable 1
+SocksPort unix:/run/tor/socks WorldWritable
+SocksPort 9050
+
+CookieAuthentication 1
+CookieAuthFileGroupReadable 1
+CookieAuthFile /run/tor/control.authcookie
+
+Log notice syslog
+
+## tor --hash-password [clear-text-password-here]
+HashedControlPassword 16:F77B9FFC49090478604C564853FA9619F3B34085D7F1BD0B
+ControlPort 9051
