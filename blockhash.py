@@ -104,7 +104,7 @@ def main() -> None :
 
     ## APPLY THE LOGIC
     if EXPHASH != BLKHASH:
-        ERRMESSAGE = "⚠️ WARNING: Local [{_HOST}] hash not same as Explorer hash (at height{}).".format(BLKHEIGHT)
+        ERRMESSAGE = "⚠️ WARNING: Local [{_HOST}] hash not same as Explorer hash (at height{BLKHEIGHT})."
         bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
 
