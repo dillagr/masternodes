@@ -10,16 +10,6 @@ from random import randint
 from dotenv import dotenv_values
 dot = dotenv_values()
 
-ERRMESSAGE=""
-APISRCH=dot.get('APISRCH')
-
-
-import logging
-FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=FORMAT)
-logr = logging.getLogger('blockhash')
-
-
 #########################################################################
 
 _ADDR=dot.get('_ADDR')
@@ -27,9 +17,20 @@ _PORT=dot.get('_PORT')
 _USER=dot.get('_USER')
 _PASS=dot.get('_PASS')
 
+ERRMESSAGE=""
+APISRCH=dot.get('APISRCH')
+
 ## DO NOT CHANGE
 HEADERS = { "Content-type": "application/json" }
 _THAT="http://" +_ADDR +":" +_PORT
+
+#########################################################################
+
+import logging
+FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+logr = logging.getLogger('blockhash')
+
 
 
 def get_block_count():
@@ -69,33 +70,42 @@ def fetch_block_hash(height):
     return xj["response"].get("hash")
 
 
-bot = telegram.Bot(token=dot.get('TOKEN'))
+def main() -> None :
 
-if BLKHEIGHT:
-    QHEIGHT=BLKHEIGHT
-else:
-    ERRMESSAGE = "⚠️ WARNING: Block height is non-numeric/invalid."
-    bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
-    sys.exit(99)
+    bot = telegram.Bot(token=dot.get('TOKEN'))
 
-#########################################################################
+    if BLKHEIGHT:
+        QHEIGHT=BLKHEIGHT
+    else:
+        ERRMESSAGE = "⚠️ WARNING: Block height is non-numeric/invalid."
+        bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
+        sys.exit(99)
 
 
-EXPHASH=fetch_block_hash(QHEIGHT)
-logr.debug(f"Explorer HASH for Block {QHEIGHT}: {EXPHASH}")
-logr.debug(f"Blockchain HASH for Block {QHEIGHT}: {BLKHASH}")
-
-if not EXPHASH:
-    ERRMESSAGE = "⚠️ WARNING: TRTT explorer has issues!"
-    bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
-    sys.exit(99)
-
+    
 
 #########################################################################
 
-## APPLY THE LOGIC
-if EXPHASH != BLKHASH:
-    ERRMESSAGE = "⚠️ WARNING: Local hash not same as Explorer hash (at height{}).".format(BLKHEIGHT)
-    bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
-    sys.exit(99)
 
+    EXPHASH=fetch_block_hash(QHEIGHT)
+    logr.debug(f"Explorer HASH for Block {QHEIGHT}: {EXPHASH}")
+    logr.debug(f"Blockchain HASH for Block {QHEIGHT}: {BLKHASH}")
+    
+    if not EXPHASH:
+        ERRMESSAGE = "⚠️ WARNING: TRTT explorer has issues!"
+        bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
+        sys.exit(99)
+
+
+#########################################################################
+
+    ## APPLY THE LOGIC
+    if EXPHASH != BLKHASH:
+        ERRMESSAGE = "⚠️ WARNING: Local hash not same as Explorer hash (at height{}).".format(BLKHEIGHT)
+        bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
+        sys.exit(99)
+
+
+
+if __name__ == "__main__":
+    main()
