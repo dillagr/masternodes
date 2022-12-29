@@ -5,6 +5,7 @@ import requests
 import telegram
 import decimal
 import sys
+import platform
 
 from random import randint
 from dotenv import dotenv_values
@@ -23,6 +24,8 @@ APISRCH=dot.get('APISRCH')
 ## DO NOT CHANGE
 HEADERS = { "Content-type": "application/json" }
 _THAT="http://" +_ADDR +":" +_PORT
+
+_HOST=platform.node()
 
 #########################################################################
 
@@ -101,7 +104,7 @@ def main() -> None :
 
     ## APPLY THE LOGIC
     if EXPHASH != BLKHASH:
-        ERRMESSAGE = "⚠️ WARNING: Local hash not same as Explorer hash (at height{}).".format(BLKHEIGHT)
+        ERRMESSAGE = "⚠️ WARNING: Local [{_HOST}] hash not same as Explorer hash (at height{}).".format(BLKHEIGHT)
         bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
 
