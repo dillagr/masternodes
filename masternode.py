@@ -8,6 +8,7 @@ import requests
 import os
 import telegram
 import platform
+import logging
 from time import sleep
 from random import randint
 
@@ -16,11 +17,26 @@ dot = dotenv_values()
 
 from blockhash import get_block_count, get_block_hash, fetch_block_hash
 
-#from emoji import emojize
-import logging
+
+#########################################################################
+( _ADDR, _PORT, _USER, _PASS ) = ( dot.get('_ADDR'), dot.get('_PORT'), dot.get('_USER'), dot.get('_PASS'))
+
+ERRMESSAGE=""
+APISRCH=dot.get('APISRCH')
+
+## DO NOT CHANGE
+HEADERS = { "Content-type": "application/json" }
+_THAT = f"http://127.0.0.1:{_PORT}"
+
+_HOST=platform.node()
+
+## logging
 FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
 logr = logging.getLogger('masternode')
 
+IS_SYNCED_WITH_EXPLORER = False   ## assume false
+SYNC_TEST_RAN = False   ## change this later
+AUTO_RESTART_MASTERNODE = True
 
 #########################################################################
 def send_alert(message: str) -> None:
@@ -42,13 +58,13 @@ def start_mnode(masternode: str) -> None:
 def walletrpc(method: str, params: list = None) -> dict:
 
     ### VARIABLES
-    _RPCURL = "http://127.0.0.1:" +str(RPCPORT)
-    HEADERS = {'content-type': "application/json", 'cache-control': "no-cache"}
+    _RPCURL = "http://127.0.0.1:" +str(_PORT)
+    HEADERS = {'content-type': "application/json;", 'cache-control': "no-cache"}
     PAYLOAD = json.dumps({"method": method, "params": params})
     ### DO-NOT-MODIFY HERE
 
     try:
-        r = requests.post( _RPCURL, headers=HEADERS, data=PAYLOAD, auth=(RPCUSER, RPCPASS) )
+        r = requests.post( _RPCURL, headers=HEADERS, data=PAYLOAD, auth=(_USER, _PASS) )
         return r.json()
     except:
         return None
@@ -56,9 +72,17 @@ def walletrpc(method: str, params: list = None) -> dict:
 
 #########################################################################
 def is_blockchain_synced(height: int) -> bool:
+    global IS_SYNCED_WITH_EXPLORER
+    global SYNC_TEST_RAN
+    SYNC_TEST_RAN = True
     BLKHASH = get_block_hash(height)
+    logr.debug(f"BLKHASH: {BLKHASH}")
+    assert BLKHASH, "⚠️ WARNING! Undefined local blockhash."
     EXPHASH = fetch_block_hash(height)
-    return BLKHASH == EXPHASH
+    logr.debug(f"EXPHASH: {EXPHASH}")
+    assert BLKHASH, "⚠️ WARNING! Undefined explorer blockhash."
+    IS_SYNCED_WITH_EXPLORER = ( BLKHASH == EXPHASH )
+    return IS_SYNCED_WITH_EXPLORER
 
 
 
@@ -67,13 +91,12 @@ def main() -> None:
     js = walletrpc(method="listmasternodeconf")
     logr.debug(f"MASTERNODE: {json.dumps(js, indent=4)}")
 
-    blk = walletrpc(method="getblockcount")
-    logr.debug(f"BLOCK: {json.dumps(blk, indent=4)}")
+    HEIGHT = walletrpc(method="getblockcount")
+    logr.debug(f"BLOCK: {json.dumps(HEIGHT, indent=4)}")
     
-    if abs( (blk.get('result') % 100_000) - 100_000 ) < 299:
+    if abs( (HEIGHT.get('result') % 100_000) - 100_000 ) < 299:
         BLKMESSAGE = f"⚠️ WARNING! Blockchain height @{blk} -- about to change collateral."
         send_alert(BLKMESSAGE)
-
 
     #ss = walletrpc(method="getstakingstatus")
     #logr.debug(f"BLOCK: {json.dumps(ss, indent=4)}")
@@ -86,14 +109,17 @@ def main() -> None:
         if MN['status'] in ('ENABLED', 'ACTIVE', 'PRE_ENABLED'): pass
 
         elif MN['status'] in ('EXPIRED', 'MISSING'):
-            HEIGHT = get_block_count() - randint(5,22)
-            ## MAKE SURE WE'RE SYNC'D
-            if not is_blockchain_synced(HEIGHT):
+            ## FIRST, MAKE SURE WE'RE SYNC'D
+            if not IS_SYNCED_WITH_EXPLORER:
+                ## DO IT ONCE, AT LEAST
+                if not SYNC_TEST_RAN: is_blockchain_synced(HEIGHT.get('result'))
                 WMESSAGE = f"⚠️ WARNING! Masternodes are not in-sync."
-                send_alert(WMESSAGE)
-                raise SystemExit
-            start_mnode(MN['alias'])
-            if "onion" in MN['address']: start_mnode(MN['alias'])
+                if not IS_SYNCED_WITH_EXPLORER: 
+                    send_alert(WMESSAGE)
+                    raise SystemExit
+            if AUTO_RESTART_MASTERNODE:
+                start_mnode(MN['alias'])
+                if "onion" in MN['address']: start_mnode(MN['alias'])
             send_alert(MESSAGE)
 
         else:
@@ -105,22 +131,6 @@ def main() -> None:
 #########################################################################
 if __name__ == "__main__":
 
-    _ADDR=dot.get('_ADDR')
-    _PORT=dot.get('_PORT')
-    _USER=dot.get('_USER')
-    _PASS=dot.get('_PASS')
-
-    ERRMESSAGE=""
-    APISRCH=dot.get('APISRCH')
-
-    ## DO NOT CHANGE
-    HEADERS = { "Content-type": "application/json" }
-    _THAT="http://" +_ADDR +":" +_PORT
-
-    _HOST=platform.node()
-
-#########################################################################
-    import logging
     from getopt import getopt
     FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
     logr = logging.getLogger('blockhash')

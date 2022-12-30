@@ -12,6 +12,20 @@ from random import randint
 from dotenv import dotenv_values
 dot = dotenv_values()
 
+_ADDR=dot.get('_ADDR')
+_PORT=dot.get('_PORT')
+_USER=dot.get('_USER')
+_PASS=dot.get('_PASS')
+
+ERRMESSAGE=""
+APISRCH=dot.get('APISRCH')
+
+## DO NOT CHANGE
+HEADERS = { "Content-type": "application/json" }
+_THAT = f"http://127.0.0.1:{_PORT}"
+
+_HOST=platform.node()
+
 #########################################################################
 def get_block_count() -> dict:
     ##
@@ -84,22 +98,8 @@ def main() -> None :
 #########################################################################
 if __name__ == "__main__":
 
-    _ADDR=dot.get('_ADDR')
-    _PORT=dot.get('_PORT')
-    _USER=dot.get('_USER')
-    _PASS=dot.get('_PASS')
-
-    ERRMESSAGE=""
-    APISRCH=dot.get('APISRCH')
-
-    ## DO NOT CHANGE
-    HEADERS = { "Content-type": "application/json" }
-    _THAT="http://" +_ADDR +":" +_PORT
-
-    _HOST=platform.node()
 
 #########################################################################
-
     import logging
     from getopt import getopt
     FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
