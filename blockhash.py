@@ -2,6 +2,7 @@
 
 import json
 import requests
+import httpx
 import telegram
 import decimal
 import sys
@@ -12,31 +13,7 @@ from dotenv import dotenv_values
 dot = dotenv_values()
 
 #########################################################################
-
-_ADDR=dot.get('_ADDR')
-_PORT=dot.get('_PORT')
-_USER=dot.get('_USER')
-_PASS=dot.get('_PASS')
-
-ERRMESSAGE=""
-APISRCH=dot.get('APISRCH')
-
-## DO NOT CHANGE
-HEADERS = { "Content-type": "application/json" }
-_THAT="http://" +_ADDR +":" +_PORT
-
-_HOST=platform.node()
-
-#########################################################################
-
-import logging
-FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=FORMAT)
-logr = logging.getLogger('blockhash')
-
-
-
-def get_block_count():
+def get_block_count() -> dict:
     ##
     GTBLCOUNT = {"jsonrpc": "1.0", "id": "blkcount", "method": "getblockcount", "params": [] } 
     PAYLOAD = json.dumps(GTBLCOUNT)
@@ -44,7 +21,8 @@ def get_block_count():
     jc = c.json(parse_float=decimal.Decimal)
     return jc.get("result")
 
-def get_block_hash(blockheight):
+#########################################################################
+def get_block_hash(blockheight) -> dict:
     ## BLKHEIGHT
     GTBLHASH = {"jsonrpc": 1.0, "id": "blkhash", "method": "getblockhash", "params": [blockheight]} 
     PAYLOAD = json.dumps(GTBLHASH)
@@ -52,15 +30,8 @@ def get_block_hash(blockheight):
     jc = c.json(parse_float=decimal.Decimal)
     return jc.get("result")    
 
-BLKCOUNT = get_block_count()
-assert int(BLKCOUNT) > 0, "!!ERROR!! Could not get block height."
-BLKHEIGHT = int(BLKCOUNT) - randint(5,22)  ## explorer might be delayed
-BLKHASH = get_block_hash(BLKHEIGHT)
-#print(BLKHEIGHT, BLKHASH)
-
 #########################################################################
-
-def fetch_block_hash(height):
+def fetch_block_hash(height) -> str:
     THISURL=APISRCH +"?query=" +str(height)
     x = requests.get(THISURL)
     #print(x, x.status_code)
@@ -73,9 +44,15 @@ def fetch_block_hash(height):
     return xj["response"].get("hash")
 
 
+#########################################################################
 def main() -> None :
 
     bot = telegram.Bot(token=dot.get('TOKEN'))
+
+    BLKCOUNT = get_block_count()
+    assert int(BLKCOUNT) > 0, "!!ERROR!! Could not get block height."
+    BLKHEIGHT = int(BLKCOUNT) - randint(5,22)  ## explorer might be delayed
+    BLKHASH = get_block_hash(BLKHEIGHT)
 
     if BLKHEIGHT:
         QHEIGHT=BLKHEIGHT
@@ -83,11 +60,6 @@ def main() -> None :
         ERRMESSAGE = "⚠️ WARNING: Block height is non-numeric/invalid."
         bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
-
-
-    
-
-#########################################################################
 
 
     EXPHASH=fetch_block_hash(QHEIGHT)
@@ -100,7 +72,6 @@ def main() -> None :
         sys.exit(99)
 
 
-#########################################################################
 
     ## APPLY THE LOGIC
     if EXPHASH != BLKHASH:
@@ -110,5 +81,49 @@ def main() -> None :
 
 
 
+#########################################################################
 if __name__ == "__main__":
+
+    _ADDR=dot.get('_ADDR')
+    _PORT=dot.get('_PORT')
+    _USER=dot.get('_USER')
+    _PASS=dot.get('_PASS')
+
+    ERRMESSAGE=""
+    APISRCH=dot.get('APISRCH')
+
+    ## DO NOT CHANGE
+    HEADERS = { "Content-type": "application/json" }
+    _THAT="http://" +_ADDR +":" +_PORT
+
+    _HOST=platform.node()
+
+#########################################################################
+
+    import logging
+    from getopt import getopt
+    FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
+    logr = logging.getLogger('blockhash')
+
+    ## getopt
+    try:
+        opts, args = getopt( sys.argv[1:], "vd", ["verbose", "debug"] )
+    except BaseException as EX:
+        logr.info(f"¡¡Exception!! {EX}")
+        raise SystemExit
+
+    ## VARS??
+    debug = False
+    for opt, arg in opts:
+        if opt in ('-d', '-v', '--debug', '--verbose'):
+            debug = True
+
+    if debug:
+        logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+    else:
+        logging.basicConfig(level=logging.INFO)
+        ## limit "Traceback" outputs
+        sys.tracebacklimit=0
+
+#########################################################################
     main()
