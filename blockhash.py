@@ -28,34 +28,39 @@ _HOST=platform.node()
 
 #########################################################################
 def get_block_count() -> dict:
-    ##
-    GTBLCOUNT = {"jsonrpc": "1.0", "id": "blkcount", "method": "getblockcount", "params": [] } 
-    PAYLOAD = json.dumps(GTBLCOUNT)
-    c = requests.post(_THAT, headers=HEADERS, data=PAYLOAD, auth=(_USER, _PASS))
-    jc = c.json(parse_float=decimal.Decimal)
+    ## BLKHEIGHT
+    jc = walletrpc(method="getblockcount", params=None)
     return jc.get("result")
 
 #########################################################################
 def get_block_hash(blockheight) -> dict:
-    ## BLKHEIGHT
-    GTBLHASH = {"jsonrpc": 1.0, "id": "blkhash", "method": "getblockhash", "params": [blockheight]} 
-    PAYLOAD = json.dumps(GTBLHASH)
-    c = requests.post(_THAT, headers=HEADERS, data=PAYLOAD, auth=(_USER, _PASS))
-    jc = c.json(parse_float=decimal.Decimal)
+    ## BLKHASH
+    jc = walletrpc(method="getblockhash", params=[blockheight])
     return jc.get("result")    
 
 #########################################################################
 def fetch_block_hash(height) -> str:
     THISURL=APISRCH +"?query=" +str(height)
     x = requests.get(THISURL)
-    #print(x, x.status_code)
-    #print(THISURL)
-    if x.status_code == 503:
-        return None
+    if x.status_code == 503: return None
     xj = x.json()
-    if len(xj.get("response")) == 0:
-        return None
+    if len(xj.get("response")) == 0: return None
     return xj["response"].get("hash")
+
+#########################################################################
+def walletrpc(method: str, params: list = None) -> dict:
+
+    ### VARIABLES
+    _RPCURL = "http://127.0.0.1:" +str(_PORT)
+    HEADERS = {'content-type': "application/json;", 'cache-control': "no-cache"}
+    PAYLOAD = json.dumps({"method": method, "params": params})
+    ### DO-NOT-MODIFY HERE
+
+    try:
+        r = requests.post( _RPCURL, headers=HEADERS, data=PAYLOAD, auth=(_USER, _PASS) )
+        return r.json()
+    except:
+        return None
 
 
 #########################################################################
@@ -98,16 +103,13 @@ def main() -> None :
 #########################################################################
 if __name__ == "__main__":
 
-
-#########################################################################
     import logging
     from getopt import getopt
     FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
     logr = logging.getLogger('blockhash')
 
     ## getopt
-    try:
-        opts, args = getopt( sys.argv[1:], "vd", ["verbose", "debug"] )
+    try: opts, args = getopt( sys.argv[1:], "vd", ["verbose", "debug"] )
     except BaseException as EX:
         logr.info(f"¡¡Exception!! {EX}")
         raise SystemExit
@@ -115,8 +117,7 @@ if __name__ == "__main__":
     ## VARS??
     debug = False
     for opt, arg in opts:
-        if opt in ('-d', '-v', '--debug', '--verbose'):
-            debug = True
+        if opt in ('-d', '-v', '--debug', '--verbose'): debug = True
 
     if debug:
         logging.basicConfig(level=logging.DEBUG, format=FORMAT)
