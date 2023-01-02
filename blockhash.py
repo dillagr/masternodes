@@ -69,14 +69,14 @@ def main() -> None :
     bot = telegram.Bot(token=dot.get('TOKEN'))
 
     BLKCOUNT = get_block_count()
-    assert int(BLKCOUNT) > 0, "!!ERROR!! Could not get block height."
+    assert int(BLKCOUNT) > 0, "!!ERROR [@{_HOST}]!! Could not get block height."
     BLKHEIGHT = int(BLKCOUNT) - randint(5,22)  ## explorer might be delayed
     BLKHASH = get_block_hash(BLKHEIGHT)
 
     if BLKHEIGHT:
         QHEIGHT=BLKHEIGHT
     else:
-        ERRMESSAGE = "⚠️ WARNING: Block height is non-numeric/invalid."
+        ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: Block height is non-numeric/invalid."
         bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
 
@@ -86,7 +86,7 @@ def main() -> None :
     logr.debug(f"Blockchain HASH for Block {QHEIGHT}: {BLKHASH}")
     
     if not EXPHASH:
-        ERRMESSAGE = "⚠️ WARNING: TRTT explorer has issues!"
+        ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: FLITS explorer has issues!"
         bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
 
@@ -94,7 +94,7 @@ def main() -> None :
 
     ## APPLY THE LOGIC
     if EXPHASH != BLKHASH:
-        ERRMESSAGE = f"⚠️ WARNING: [{_HOST}] Local hash not same as Explorer hash (at height: {BLKHEIGHT})."
+        ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: Local hash not same as Explorer hash (at height: {BLKHEIGHT})."
         bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
 
