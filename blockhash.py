@@ -79,7 +79,7 @@ def main() -> None :
 
     BLKCOUNT = get_block_count()
     assert int(BLKCOUNT) > 0, "!!ERROR [@{_HOST}]!! Could not get block height."
-    BLKHEIGHT = int(BLKCOUNT) - randint(5,22)  ## explorer might be delayed
+    BLKHEIGHT = int(BLKCOUNT) - randint(3,12)  ## explorer might be delayed
     BLKHASH = get_block_hash(BLKHEIGHT)
 
     if BLKHEIGHT:
