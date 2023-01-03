@@ -111,7 +111,7 @@ def main() -> None :
         sys.exit(99)
 
     if abs(BLKCOUNT -EXPHEIGHT) > 9:
-        ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: Block height ({BLKHCOUNT}) not same as Explorer (height: {EXPHEIGHT})."
+        ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: Block height ({BLKCOUNT}) not same as Explorer (height: {EXPHEIGHT})."
         bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
 
