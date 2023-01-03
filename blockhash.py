@@ -48,6 +48,15 @@ def fetch_block_hash(height) -> str:
     return xj["response"].get("hash")
 
 #########################################################################
+def fetch_block_hash(height) -> str:
+    THISURL="https://explorer.decenomy.net/coreapi/v1/coins/FLS"
+    x = requests.get(THISURL)
+    if x.status_code == 503: return None
+    xj = x.json()
+    if len(xj.get("response")) == 0: return None
+    return xj["response"].get("bestblockheight")
+
+#########################################################################
 def walletrpc(method: str, params: list = None) -> dict:
 
     ### VARIABLES
@@ -82,6 +91,7 @@ def main() -> None :
 
 
     EXPHASH=fetch_block_hash(QHEIGHT)
+    EXPHEIGHT=fetch_block_height()
     logr.debug(f"Explorer HASH for Block {QHEIGHT}: {EXPHASH}")
     logr.debug(f"Blockchain HASH for Block {QHEIGHT}: {BLKHASH}")
     
@@ -97,6 +107,13 @@ def main() -> None :
         ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: Local hash not same as Explorer hash (at height: {BLKHEIGHT})."
         bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
+
+    if abs(BLKHEIGHT -EXPHEIGHT) > 9:
+        ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: Block height ({BLKHEIGHT}) not same as Explorer (height: {EXPHEIGHT})."
+        bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
+        sys.exit(99)
+
+
 
 
 
