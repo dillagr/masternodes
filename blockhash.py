@@ -48,7 +48,7 @@ def fetch_block_hash(height) -> str:
     return xj["response"].get("hash")
 
 #########################################################################
-def fetch_block_hash(height) -> str:
+def fetch_block_height() -> int:
     THISURL="https://explorer.decenomy.net/coreapi/v1/coins/FLS"
     x = requests.get(THISURL)
     if x.status_code == 503: return None
@@ -94,6 +94,8 @@ def main() -> None :
     EXPHEIGHT=fetch_block_height()
     logr.debug(f"Explorer HASH for Block {QHEIGHT}: {EXPHASH}")
     logr.debug(f"Blockchain HASH for Block {QHEIGHT}: {BLKHASH}")
+    logr.debug(f"Explorer height {EXPHEIGHT}")
+    logr.debug(f"Blockchain height {BLKCOUNT}")
     
     if not EXPHASH:
         ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: FLITS explorer has issues!"
@@ -108,8 +110,8 @@ def main() -> None :
         bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
 
-    if abs(BLKHEIGHT -EXPHEIGHT) > 9:
-        ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: Block height ({BLKHEIGHT}) not same as Explorer (height: {EXPHEIGHT})."
+    if abs(BLKCOUNT -EXPHEIGHT) > 9:
+        ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: Block height ({BLKHCOUNT}) not same as Explorer (height: {EXPHEIGHT})."
         bot.sendMessage(chat_id=dot.get('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
 
