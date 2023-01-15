@@ -3,3 +3,5 @@ python-dotenv==0.21.0
 python-telegram-bot==13.15
 requests==2.22.0
 telegram-send==0.34
+python-decouple==3.7
+
