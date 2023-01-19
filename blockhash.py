@@ -6,6 +6,7 @@ import telegram
 import decimal
 import sys
 import platform
+import argparse
 
 from random import randint
 from decouple import config
@@ -40,21 +41,21 @@ def get_blockhash(blockheight) -> dict:
     return jc.get("result")    
 
 #########################################################################
-def get_txid(blockheight):
-    blockhash = get_blockhash(blockheight)
+def get_txid(blockheight: int):
+    blockhash = get_blockhash(int(blockheight))
     txid = walletrpc("getblock", [blockhash])
     assert txid.get('result'), f"¡¡ERROR!! Unrecognized block {blockheight}."
     return txid.get("result").get("tx")[1]
 
 #########################################################################
-def get_rawtransaction(blockheight):
-    txid = get_txid(blockheight)
+def get_rawtransaction(blockheight: int, txid=None):
+    if not txid: txid = get_txid(blockheight)
     tx = walletrpc("getrawtransaction", [txid])
     assert tx.get('result'), "¡¡ERROR!! Missing raw transaction."
     return tx.get("result")
 
 #########################################################################
-def decode_rawtransaction(blockheight):
+def decode_rawtransaction(blockheight: int):
     hexstring = get_rawtransaction(blockheight)
     tx = walletrpc("decoderawtransaction", [hexstring])
     assert tx.get('result'), "¡¡ERROR!! Unable to decode raw transaction"
@@ -96,7 +97,7 @@ def walletrpc(method: str, params: list = None) -> dict:
 
 
 #########################################################################
-def main() -> None :
+def main(args) -> None :
 
     bot = telegram.Bot(token=config('TOKEN'))
 
@@ -107,6 +108,7 @@ def main() -> None :
 
     if BLKHEIGHT:
         QHEIGHT=BLKHEIGHT
+        assert QHEIGHT, f"⚠️ WARNING: Missing blockheight."
     else:
         ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: Block height is non-numeric/invalid."
         bot.sendMessage(chat_id=config('_CHID'), text=ERRMESSAGE)
@@ -115,10 +117,11 @@ def main() -> None :
 
     EXPHASH=fetch_blockhash(QHEIGHT)
     EXPHEIGHT=fetch_blockheight()
-    logr.info(f"Explorer HASH for Block {QHEIGHT}: {EXPHASH}")
-    logr.info(f"Blockchain HASH for Block {QHEIGHT}: {BLKHASH}")
-    logr.info(f"Explorer height {EXPHEIGHT}")
-    logr.info(f"Blockchain height {BLKCOUNT}")
+    if args.debug:
+        logger.info(f"Explorer HASH for Block {QHEIGHT}: {EXPHASH}")
+        logger.info(f"Blockchain HASH for Block {QHEIGHT}: {BLKHASH}")
+        logger.info(f"Explorer height {EXPHEIGHT}")
+        logger.info(f"Blockchain height {BLKCOUNT}")
     
     if not EXPHASH:
         ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: FLITS explorer has issues!"
@@ -140,33 +143,29 @@ def main() -> None :
 
 
 
+############################################################
+def cli_params() -> None:
+
+    global args
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", "-v", required=False, action='store_true',
+        help="Make verbose outputs on stdout (same function as verbose).", )
+
+    args = parser.parse_args()
+    if args.debug: logger.debug(f"ARGS: {args}")
+    return(args)
 
 
 #########################################################################
 if __name__ == "__main__":
 
-    import logging
-    from getopt import getopt
-    FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
-    logr = logging.getLogger('blockhash')
+    args = cli_params()
+    # import logging
+    # from getopt import getopt
+    # FORMAT = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
+    # logger = logging.getLogger('blockhash')
 
-    ## getopt
-    try: opts, args = getopt( sys.argv[1:], "vd", ["verbose", "debug"] )
-    except BaseException as EX:
-        logr.WARN(f"¡¡Exception!! {EX}")
-        raise SystemExit
+    if not args.debug: sys.tracebacklimit=0
 
-    ## VARS??
-    debug = False
-    for opt, arg in opts:
-        if opt in ('-d', '-v', '--debug', '--verbose'): debug = True
-
-    if debug:
-        logging.basicConfig(level=logging.INFO, format=FORMAT)
-    else:
-        logging.basicConfig(level=logging.WARN)
-        ## limit "Traceback" outputs
-        sys.tracebacklimit=0
-
-#########################################################################
-    main()
+    main(args)
