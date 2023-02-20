@@ -29,13 +29,13 @@ _THAT = f"http://127.0.0.1:{_PORT}"
 _HOST=platform.node()
 
 #########################################################################
-def get_blockcount() -> dict:
+def get_blockcount():
     ## BLKHEIGHT
     jc = walletrpc(method="getblockcount", params=None)
     return jc.get("result")
 
 #########################################################################
-def get_blockhash(blockheight) -> dict:
+def get_blockhash(blockheight):
     ## BLKHASH
     jc = walletrpc(method="getblockhash", params=[blockheight])
     return jc.get("result")    
@@ -55,14 +55,14 @@ def get_rawtransaction(blockheight: int, txid=None):
     return tx.get("result")
 
 #########################################################################
-def decode_rawtransaction(blockheight: int):
-    hexstring = get_rawtransaction(blockheight)
+def decode_rawtransaction(blockheight: int=None, hexstring: str=None):
+    if not hexstring: hexstring = get_rawtransaction(blockheight)
     tx = walletrpc("decoderawtransaction", [hexstring])
     assert tx.get('result'), "¡¡ERROR!! Unable to decode raw transaction"
     return tx.get("result").get("vout")
 
 #########################################################################
-def fetch_blockhash(height) -> str:
+def fetch_blockhash(height):
     THISURL=APISRCH +"?query=" +str(height)
     x = rs.get(THISURL)
     if x.status_code == 503: return None

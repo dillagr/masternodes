@@ -15,7 +15,7 @@ from random import randint
 from dotenv import dotenv_values
 dot = dotenv_values()
 
-from blockhash import get_block_count, get_block_hash, fetch_block_hash
+from blockhash import get_blockhash, fetch_blockhash
 
 
 #########################################################################
@@ -75,10 +75,10 @@ def is_blockchain_synced(height: int) -> bool:
     global IS_SYNCED_WITH_EXPLORER
     global SYNC_TEST_RAN
     SYNC_TEST_RAN = True
-    BLKHASH = get_block_hash(height)
+    BLKHASH = get_blockhash(height)
     logr.debug(f"BLKHASH: {BLKHASH}")
     assert BLKHASH, "⚠️ WARNING! Undefined local blockhash."
-    EXPHASH = fetch_block_hash(height)
+    EXPHASH = fetch_blockhash(height)
     logr.debug(f"EXPHASH: {EXPHASH}")
     assert BLKHASH, "⚠️ WARNING! Undefined explorer blockhash."
     IS_SYNCED_WITH_EXPLORER = ( BLKHASH == EXPHASH )
