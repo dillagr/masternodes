@@ -27,6 +27,7 @@ HEADERS = { "Content-type": "application/json" }
 _THAT = f"http://127.0.0.1:{_PORT}"
 
 _HOST=platform.node()
+_DISTANCE=29
 
 #########################################################################
 def get_blockcount():
@@ -136,7 +137,7 @@ def main(args) -> None :
         bot.sendMessage(chat_id=config('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
 
-    if abs(BLKCOUNT -EXPHEIGHT) > 9:
+    if abs(BLKCOUNT -EXPHEIGHT) > _DISTANCE:
         ERRMESSAGE = f"⚠️ WARNING [@{_HOST}]: Block height ({BLKCOUNT}) not same as Explorer (height: {EXPHEIGHT})."
         bot.sendMessage(chat_id=config('_CHID'), text=ERRMESSAGE)
         sys.exit(99)
