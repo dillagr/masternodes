@@ -36,7 +36,7 @@ logr = logging.getLogger('masternode')
 
 IS_SYNCED_WITH_EXPLORER = False   ## assume false
 SYNC_TEST_RAN = False   ## change this later
-AUTO_RESTART_MASTERNODE = False
+AUTO_RESTART_MASTERNODE = True
 
 #########################################################################
 def send_alert(message: str) -> None:

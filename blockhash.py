@@ -64,7 +64,7 @@ def decode_rawtransaction(blockheight: int=None, hexstring: str=None):
 
 #########################################################################
 def fetch_blockhash(height):
-    THISURL=APISRCH +"?query=" +str(height)
+    THISURL=f"{APISRCH}?query={height}"
     x = rs.get(THISURL)
     if x.status_code == 503: return None
     xj = x.json()
@@ -88,10 +88,12 @@ def walletrpc(method: str, params: list = None) -> dict:
     HEADERS = {'content-type': "application/json;", 'cache-control': "no-cache"}
     PAYLOAD = json.dumps({"method": method, "params": params})
     #logger.debug(f"PAYLOAD: {json.dumps(PAYLOAD, indent=4)}")
+    #logger.debug(f"AUTH: {_USER} | {_PASS}")
     ### DO-NOT-MODIFY HERE
 
     try:
         r = rs.post( _RPCURL, headers=HEADERS, data=PAYLOAD, auth=(_USER, _PASS) )
+        #logger.debug(r)
         return r.json()
     except:
         return None

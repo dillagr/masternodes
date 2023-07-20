@@ -7,3 +7,4 @@
 ## whitelist the scripts
 !blockhash.py
 !masternode.py
+!masternode-info.py
